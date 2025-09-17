@@ -1,4 +1,4 @@
-module github.com/arezooq/auth-serivce
+module github.com/arezooq/auth-service
 
 go 1.24.6
 
