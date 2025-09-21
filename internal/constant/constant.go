@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// LoginRequest
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
@@ -30,3 +31,10 @@ var (
 	PostgresDatabase   = getEnv("POSTGRESDB_DATABASE")
 	PostgresSSLMode    = getEnv("POSTGRESDB_SSLMODE")
 )
+
+// redis
+var (
+	REDIS_HOST = getEnv("REDIS_HOST")
+	REDIS_PASSWORD = getEnv("REDIS_PASSWORD")
+)
+

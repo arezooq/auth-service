@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -9,18 +10,20 @@ import (
 	"auth-service/internal/repositories/postgres"
 	"auth-service/internal/repositories/redis"
 	"auth-service/internal/services"
-
-	"github.com/arezooq/open-utils/db/repository"
 	"github.com/arezooq/open-utils/logger"
 )
 
 func main() {
 	port := os.Getenv("PORT")
+	var ctx context.Context
 
 	logger := logger.New("auth-service")
 
 	// redis
-	redisRepo := repository.NewBaseRedisRepository()
+	redisRepo, err := redis.InitRedis(ctx)
+	if err != nil {
+		logger.Fatal("-", "failed to init redis: "+err.Error())
+	}
 
 	// Postgres
 	pgDB, err := postgres.InitPostgres()
@@ -28,7 +31,7 @@ func main() {
 		logger.Fatal("-", "failed to init postgres: "+err.Error())
 	}
 
-	otpRepo := redis.NewOTPRepository(redisRepo)
+	otpRepo := redis.NewOTPRepository(redisRepo, ctx)
 	userRepo := postgres.NewUserRepository(pgDB, logger)
 
 	authService := services.NewAuthService(userRepo, otpRepo, logger)

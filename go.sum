@@ -36,6 +36,8 @@ github.com/arezooq/open-utils v0.0.0-20250920182450-1e7cbb7cec66 h1:Bsba3mEACDHZ
 github.com/arezooq/open-utils v0.0.0-20250920182450-1e7cbb7cec66/go.mod h1:zDudMNwgt69WVfFHLtJ33pWYMNzg3FbS+6qYCN+lpmc=
 github.com/arezooq/open-utils v0.0.0-20250921082757-3a9391c5340b h1:6zC9AsbvoB2facDucrt2pefF52gpnRACa/Qiv53wMdg=
 github.com/arezooq/open-utils v0.0.0-20250921082757-3a9391c5340b/go.mod h1:zDudMNwgt69WVfFHLtJ33pWYMNzg3FbS+6qYCN+lpmc=
+github.com/arezooq/open-utils v0.0.0-20250921170846-63f1cda2f9ef h1:qYstbImdGoszt0gnx/yflf3s3W/J0bndQ2ZxwQ6+CQs=
+github.com/arezooq/open-utils v0.0.0-20250921170846-63f1cda2f9ef/go.mod h1:zDudMNwgt69WVfFHLtJ33pWYMNzg3FbS+6qYCN+lpmc=
 github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
 github.com/bytedance/sonic v1.11.6/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
 github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=

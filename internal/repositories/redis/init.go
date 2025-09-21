@@ -2,28 +2,21 @@ package redis
 
 import (
 	"context"
-	"fmt"
+	"auth-service/internal/constant"
 	"os"
 
+	"github.com/arezooq/open-utils/db/connection"
 	"github.com/redis/go-redis/v9"
 )
 
 func InitRedis(ctx context.Context) (*redis.Client, error) {
-	url := os.Getenv("REDIS_URL")
-	if url == "" {
-		return nil, fmt.Errorf("REDIS_URL is not set")
-	}
+    cfg := connection.RedisConfig{
+        Addr:     constant.REDIS_HOST + ":" + os.Getenv("REDIS_PORT"),
+        Password: constant.REDIS_PASSWORD,
+        DB:       0,
+        PoolSize: 10,
+    }
 
-	opt, err := redis.ParseURL(url)
-	if err != nil {
-		return nil, err
-	}
-
-	client := redis.NewClient(opt)
-	if err := client.Ping(ctx).Err(); err != nil {
-		return nil, err
-	}
-
-	fmt.Println("Redis connected")
-	return client, nil
+    return connection.ConnectRedis(ctx, cfg)
 }
+
