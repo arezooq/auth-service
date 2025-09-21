@@ -1,7 +1,7 @@
 package http
 
 import (
-	serivces "github.com/arezooq/auth-serivce/internal/services"
+	serivces "auth-service/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,13 +10,18 @@ type HandlerAuthInterface interface {
 
 	// Entity:auth
 	Login(c *gin.Context)
+	Register(c *gin.Context)
+	Refresh(c *gin.Context)
+	ForgotPassword(c *gin.Context)
+	VerifyResetPassword(c *gin.Context)
+	ResetPassword(c *gin.Context)
 
 }
 
 type handler struct {
-	authServiceInterface serivces.AuthService
+	authService *serivces.AuthService
 }
 
-func InitAuthHandler(authServiceInterface serivces.AuthService) HandlerAuthInterface {
-	return &handler{authServiceInterface: authServiceInterface}
+func InitAuthHandler(authService *serivces.AuthService) HandlerAuthInterface {
+	return &handler{authService: authService}
 }

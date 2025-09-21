@@ -1,28 +1,27 @@
-package repositories
+package postgres
 
 import (
-	"database/sql"
-	"fmt"
-	"os"
+	"auth-service/internal/constant"
 
-	_ "github.com/lib/pq"
+	"github.com/arezooq/open-utils/db/connection"
+	"github.com/arezooq/open-utils/errors"
+	"gorm.io/gorm"
 )
 
-func InitPostgres() (*sql.DB, error) {
-	dsn := os.Getenv("POSTGRES_URL")
-	if dsn == "" {
-		return nil, fmt.Errorf("POSTGRES_URL is not set")
-	}
+func InitPostgres() (*gorm.DB, error){
+    cfg := connection.DBConfig{
+        Host: constant.PostgresAddr,
+        Port: constant.HttpPort,
+        User: constant.PostgresUsername,
+        Password: constant.PostgresPassword,
+        DBName: constant.PostgresDatabase,
+        SSLMode: constant.PostgresSSLMode,
+    }
 
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, err
-	}
+    DB, err := connection.ConnectDB(cfg)
+    if err != nil {
+		return nil, errors.New("cannot connect to db: %v", err.Error(), 500)
+    }
 
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
-
-	fmt.Println("Postgres connected")
-	return db, nil
+	return DB, nil
 }

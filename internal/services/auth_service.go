@@ -1,11 +1,12 @@
-package serivces
+package services
 
 import (
 	"time"
 
-	"github.com/arezooq/auth-serivce/internal/models"
+	"auth-service/internal/models"
 
-	"github.com/arezooq/auth-serivce/internal/repositories"
+	"auth-service/internal/repositories/postgres"
+	"auth-service/internal/repositories/redis"
 	"github.com/arezooq/open-utils/errors"
 	"github.com/arezooq/open-utils/jwt"
 	"github.com/arezooq/open-utils/logger"
@@ -14,13 +15,13 @@ import (
 )
 
 type AuthService struct {
-	otpRepo  *repositories.OTPRepository
-	userRepo *repositories.UserRepository
+	otpRepo  *redis.OTPRepository
+	userRepo *postgres.UserRepository
 	log      *logger.Logger
 }
 
 // NewUserService
-func NewAuthService(userRepo *repositories.UserRepository, otpRepo *repositories.OTPRepository, log *logger.Logger) *AuthService {
+func NewAuthService(userRepo *postgres.UserRepository, otpRepo *redis.OTPRepository, log *logger.Logger) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
 		otpRepo:  otpRepo,

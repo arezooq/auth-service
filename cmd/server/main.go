@@ -1,31 +1,41 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/arezooq/auth-serivce/internal/http"
-	"github.com/arezooq/auth-service/internal/repositories"
-	"github.com/arezooq/auth-service/internal/services"
+	"auth-service/internal/handlers/http"
+	"auth-service/internal/repositories/postgres"
+	"auth-service/internal/repositories/redis"
+	"auth-service/internal/services"
+
+	"github.com/arezooq/open-utils/db/repository"
+	"github.com/arezooq/open-utils/logger"
 )
 
 func main() {
-    cfg := configs.Load()
+	port := os.Getenv("PORT")
 
-    logger := log.Default()
-    redisRepo, err := repositories.InitRedis(cfg)
-    if err != nil {
-        logger.Fatal("Failed to init redis:", err)
-    }
+	logger := logger.New("auth-service")
 
-    otpRepo := repositories.NewOTPRepository(redisRepo)
-    userRepo := repositories.NewUserRepository()
+	// redis
+	redisRepo := repository.NewBaseRedisRepository()
 
-    authService := services.NewAuthService(userRepo, otpRepo, logger)
-    authHandler := http.InitAuthHandler(authService)
+	// Postgres
+	pgDB, err := postgres.InitPostgres()
+	if err != nil {
+		logger.Fatal("-", "failed to init postgres: "+err.Error())
+	}
 
-    r := gin.Default()
-    authHandler.RegisterRoutes(r)
-    r.Run(":" + cfg.AppPort)
+	otpRepo := redis.NewOTPRepository(redisRepo)
+	userRepo := postgres.NewUserRepository(pgDB, logger)
+
+	authService := services.NewAuthService(userRepo, otpRepo, logger)
+	authHandler := http.InitAuthHandler(authService)
+
+	r := gin.Default()
+	authHandler.RegisterRoutes(r)
+	logger.Info("-", "Server started on port "+port)
+	r.Run(":" + port)
 }

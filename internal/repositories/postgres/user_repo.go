@@ -1,7 +1,7 @@
-package repositories
+package postgres
 
 import (
-	"github.com/arezooq/auth-serivce/internal/models"
+	"auth-service/internal/models"
 	"github.com/arezooq/open-utils/db/repository"
 	"github.com/arezooq/open-utils/errors"
 	"github.com/arezooq/open-utils/logger"
