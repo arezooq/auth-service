@@ -34,7 +34,7 @@ func main() {
 	otpRepo := redis.NewOTPRepository(redisRepo, ctx)
 	userRepo := postgres.NewUserRepository(pgDB, logger)
 
-	authService := services.NewAuthService(userRepo, otpRepo, logger)
+	authService := services.NewAuthService(otpRepo, userRepo, logger)
 	authHandler := http.InitAuthHandler(authService)
 
 	r := gin.Default()

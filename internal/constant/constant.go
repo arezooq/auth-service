@@ -1,14 +1,24 @@
 package constant
 
 import (
-	"github.com/joho/godotenv"
 	"os"
+
+	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 // LoginRequest
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
+}
+
+// LoginResponse
+type LoginResponse struct {
+	ID           uuid.UUID `json:"id"`
+	Email        string    `json:"email"`
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 // service info

@@ -1,7 +1,7 @@
 package http
 
 import (
-	serivces "auth-service/internal/services"
+	"auth-service/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,9 +19,9 @@ type HandlerAuthInterface interface {
 }
 
 type handler struct {
-	authService *serivces.AuthService
+	authService services.AuthService
 }
 
-func InitAuthHandler(authService *serivces.AuthService) HandlerAuthInterface {
+func InitAuthHandler(authService services.AuthService) HandlerAuthInterface {
 	return &handler{authService: authService}
 }
