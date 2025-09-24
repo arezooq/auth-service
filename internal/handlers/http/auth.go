@@ -125,3 +125,24 @@ func (h *handler) ResetPassword(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset successful"})
 }
+
+// OAuthLogin
+func (h *handler) OAuthLogin(c *gin.Context) {
+	var req struct {
+		Provider    string `json:"provider" binding:"required"`
+		AccessToken string `json:"access_token" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return    
+	}
+
+	resp, err := h.authService.OAuthLogin(c, req.Provider, req.AccessToken, c.GetString("reqID"))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}

@@ -3,6 +3,7 @@ package services
 import (
 	"auth-service/internal/constant"
 	"auth-service/internal/models"
+	"context"
 	"time"
 )
 
@@ -15,4 +16,6 @@ type AuthService interface {
 	ResetPassword(mobile, newPassword, reqID string) error
 	RefreshAccessToken(refreshToken, reqID string) (*constant.LoginResponse, error)
 	GenerateAndSaveOTP(key string, length int, ttl time.Duration, reqID string) (string, error)
+
+	OAuthLogin(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error)
 }

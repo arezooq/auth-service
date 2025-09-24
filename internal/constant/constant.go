@@ -21,6 +21,12 @@ type LoginResponse struct {
 	RefreshToken string    `json:"refresh_token"`
 }
 
+type OAuthResponse struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
+
 // service info
 const (
 	ServiceName    = "auth-service"
@@ -34,17 +40,16 @@ func getEnv(key string) string {
 
 // postgres
 var (
-	HttpPort        = getEnv("POSTGRESDB_PORT")
+	HttpPort         = getEnv("POSTGRESDB_PORT")
 	PostgresUsername = getEnv("POSTGRESDB_USERNAME")
-	PostgresPassword   = getEnv("POSTGRESDB_PASSWORD")
-	PostgresAddr       = getEnv("POSTGRESDB_ADDR")
-	PostgresDatabase   = getEnv("POSTGRESDB_DATABASE")
-	PostgresSSLMode    = getEnv("POSTGRESDB_SSLMODE")
+	PostgresPassword = getEnv("POSTGRESDB_PASSWORD")
+	PostgresAddr     = getEnv("POSTGRESDB_ADDR")
+	PostgresDatabase = getEnv("POSTGRESDB_DATABASE")
+	PostgresSSLMode  = getEnv("POSTGRESDB_SSLMODE")
 )
 
 // redis
 var (
-	REDIS_HOST = getEnv("REDIS_HOST")
+	REDIS_HOST     = getEnv("REDIS_HOST")
 	REDIS_PASSWORD = getEnv("REDIS_PASSWORD")
 )
-

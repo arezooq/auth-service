@@ -12,4 +12,6 @@ func (h *handler) RegisterRoutes(router *gin.Engine) {
 	group.POST("/forgot-password", h.ForgotPassword)
 	group.POST("/verify-reset", h.VerifyResetPassword)
 	group.POST("/reset-password", h.ResetPassword)
+
+	group.POST("/oauth/login", h.OAuthLogin)
 }

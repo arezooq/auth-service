@@ -3,7 +3,9 @@ package http_test
 import (
 	httphandler "auth-service/internal/handlers/http"
 	"bytes"
+	"context"
 	"encoding/json"
+	nethttp "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -25,6 +27,7 @@ type MockAuthService struct {
 	ResetPasswordFn       func(mobile, newPassword, reqID string) error
 	RefreshAccessTokenFn  func(refreshToken, reqID string) (*constant.LoginResponse, error)
 	GenerateAndSaveOTPFn  func(key string, length int, ttl time.Duration, reqID string) (string, error)
+	OAuthLoginFn            func(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error)
 }
 
 // Implement all methods
@@ -57,6 +60,10 @@ func (m *MockAuthService) RefreshAccessToken(refreshToken, reqID string) (*const
 }
 func (m *MockAuthService) GenerateAndSaveOTP(key string, length int, ttl time.Duration, reqID string) (string, error) {
 	return m.GenerateAndSaveOTPFn(key, length, ttl, reqID)
+}
+
+func (m *MockAuthService) OAuthLogin(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error) {
+	return m.OAuthLoginFn(ctx, provider, code, reqID)
 }
 
 // Register
@@ -192,4 +199,38 @@ func TestRefreshToken_Success(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.Contains(t, w.Body.String(), "new-access")
+}
+
+func TestOAuthLogin_Success(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockSvc := &MockAuthService{
+		OAuthLoginFn: func(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error) {
+			return &constant.LoginResponse{
+				ID:           uuid.New(),
+				Email:        "test@example.com",
+				AccessToken:  "oauth-access",
+				RefreshToken: "oauth-refresh",
+			}, nil
+		},
+	}
+
+	h := httphandler.InitAuthHandler(mockSvc)
+
+	reqBody := map[string]string{
+		"provider":     "google",
+		"access_token": "dummy-token",
+	}
+	bodyBytes, _ := json.Marshal(reqBody)
+
+	w := httptest.NewRecorder()
+	req, _ := nethttp.NewRequest("POST", "/api/auth/oauth/login", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	r := gin.New()
+	h.RegisterRoutes(r)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Contains(t, w.Body.String(), "oauth-access")
 }

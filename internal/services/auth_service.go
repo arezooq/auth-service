@@ -1,10 +1,12 @@
 package services
 
 import (
+	"context"
 	"time"
 
-	"auth-service/internal/models"
+	"auth-service/internal/api/oauth"
 	"auth-service/internal/constant"
+	"auth-service/internal/models"
 
 	"auth-service/internal/repositories/postgres"
 	"auth-service/internal/repositories/redis"
@@ -14,10 +16,17 @@ import (
 	"github.com/arezooq/open-utils/security"
 )
 
+type OAuthUserInfo struct {
+	Email string
+	Name  string
+	ID    string
+}
+
 type authService struct {
-	otpRepo  *redis.OTPRepository
-	userRepo *postgres.UserRepository
-	log      *logger.Logger
+	otpRepo     *redis.OTPRepository
+	userRepo    *postgres.UserRepository
+	log         *logger.Logger
+	oauthClient oauth.OAuthClient
 }
 
 // NewUserService
@@ -190,7 +199,7 @@ func (s *authService) RefreshAccessToken(refreshToken, reqID string) (*constant.
 	// 4. Replace old refresh token in Redis
 	err = s.otpRepo.SaveRefreshToken(userID.String(), newRefreshToken, 7*24*time.Hour)
 	if err != nil {
-		s.log.Error(reqID, "failed to save refresh token: "+ err.Error())
+		s.log.Error(reqID, "failed to save refresh token: "+err.Error())
 		return nil, errors.ErrInternal
 	}
 
@@ -212,4 +221,42 @@ func (s *authService) GenerateAndSaveOTP(key string, length int, ttl time.Durati
 	}
 
 	return code, nil
+}
+
+func (s *authService) OAuthLogin(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error) {
+	userInfo, err := s.oauthClient.GetUserInfo(ctx, provider, code)
+	if err != nil {
+		return nil, err
+	}
+	// If user exist -> fetch user
+	user, err := s.userRepo.GetUserByEmailOrPhone(userInfo.Email, reqID)
+	if err != nil {
+		// If user not exist -> create user
+		user = &models.User{Email: userInfo.Email, FName: userInfo.Name}
+		user, err = s.userRepo.Create(user)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Generate accessToken
+	accessToken, errTok := jwt.GenerateAccessToken(user.ID)
+	if errTok != nil {
+		s.log.Error(reqID, "Failed to generate access token: "+errTok.Error())
+		return nil, errors.ErrInternal
+	}
+
+	// Generate refreshToken
+	refreshToken, errRefTok := jwt.GenerateRefreshToken(user.ID)
+	if errRefTok != nil {
+		s.log.Error(reqID, "Failed to generate refresh token: "+errRefTok.Error())
+		return nil, errors.ErrInternal
+	}
+
+	return &constant.LoginResponse{
+		ID:           user.ID,
+		Email:        user.Email,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
