@@ -19,51 +19,51 @@ import (
 )
 
 type MockAuthService struct {
-	RegisterUserFn        func(user *models.User, reqID string) (*models.User, error)
-	LoginUserFn           func(email, password, reqID string) (*constant.LoginResponse, error)
-	SendOTPFn             func(mobile, reqID string) (string, error)
-	ForgotPasswordFn      func(mobile, reqID string) (string, error)
-	VerifyResetPasswordFn func(mobile, otp, reqID string) error
-	ResetPasswordFn       func(mobile, newPassword, reqID string) error
-	RefreshAccessTokenFn  func(refreshToken, reqID string) (*constant.LoginResponse, error)
-	GenerateAndSaveOTPFn  func(key string, length int, ttl time.Duration, reqID string) (string, error)
-	OAuthLoginFn            func(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error)
+	RegisterUserFn        func(user *models.User) (*models.User, error)
+	LoginUserFn           func(email, password string) (*constant.LoginResponse, error)
+	SendOTPFn             func(mobile string) (string, error)
+	ForgotPasswordFn      func(mobile string) (string, error)
+	VerifyResetPasswordFn func(mobile, otp string) error
+	ResetPasswordFn       func(mobile, newPassword string) error
+	RefreshAccessTokenFn  func(refreshToken string) (*constant.LoginResponse, error)
+	GenerateAndSaveOTPFn  func(key string, length int, ttl time.Duration) (string, error)
+	OAuthLoginFn            func(ctx context.Context, provider, code string) (*constant.LoginResponse, error)
 }
 
 // Implement all methods
-func (m *MockAuthService) RegisterUser(user *models.User, reqID string) (*models.User, error) {
-	return m.RegisterUserFn(user, reqID)
+func (m *MockAuthService) RegisterUser(user *models.User) (*models.User, error) {
+	return m.RegisterUserFn(user)
 }
 
-func (m *MockAuthService) LoginUser(email, password, reqID string) (*constant.LoginResponse, error) {
-	return m.LoginUserFn(email, password, reqID)
+func (m *MockAuthService) LoginUser(email, password string) (*constant.LoginResponse, error) {
+	return m.LoginUserFn(email, password)
 }
 
-func (m *MockAuthService) SendOTP(mobile, reqID string) (string, error) {
-	return m.SendOTPFn(mobile, reqID)
+func (m *MockAuthService) SendOTP(mobile string) (string, error) {
+	return m.SendOTPFn(mobile)
 }
 
-func (m *MockAuthService) ForgotPassword(mobile, reqID string) (string, error) {
-	return m.ForgotPasswordFn(mobile, reqID)
+func (m *MockAuthService) ForgotPassword(mobile string) (string, error) {
+	return m.ForgotPasswordFn(mobile)
 }
 
-func (m *MockAuthService) VerifyResetPassword(mobile, otp, reqID string) error {
-	return m.VerifyResetPasswordFn(mobile, otp, reqID)
+func (m *MockAuthService) VerifyResetPassword(mobile, otp string) error {
+	return m.VerifyResetPasswordFn(mobile, otp)
 }
 
-func (m *MockAuthService) ResetPassword(mobile, newPassword, reqID string) error {
-	return m.ResetPasswordFn(mobile, newPassword, reqID)
+func (m *MockAuthService) ResetPassword(mobile, newPassword string) error {
+	return m.ResetPasswordFn(mobile, newPassword)
 }
 
-func (m *MockAuthService) RefreshAccessToken(refreshToken, reqID string) (*constant.LoginResponse, error) {
-	return m.RefreshAccessTokenFn(refreshToken, reqID)
+func (m *MockAuthService) RefreshAccessToken(refreshToken string) (*constant.LoginResponse, error) {
+	return m.RefreshAccessTokenFn(refreshToken)
 }
-func (m *MockAuthService) GenerateAndSaveOTP(key string, length int, ttl time.Duration, reqID string) (string, error) {
-	return m.GenerateAndSaveOTPFn(key, length, ttl, reqID)
+func (m *MockAuthService) GenerateAndSaveOTP(key string, length int, ttl time.Duration) (string, error) {
+	return m.GenerateAndSaveOTPFn(key, length, ttl)
 }
 
-func (m *MockAuthService) OAuthLogin(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error) {
-	return m.OAuthLoginFn(ctx, provider, code, reqID)
+func (m *MockAuthService) OAuthLogin(ctx context.Context, provider, code string) (*constant.LoginResponse, error) {
+	return m.OAuthLoginFn(ctx, provider, code)
 }
 
 // Register
@@ -71,7 +71,7 @@ func TestRegister_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := &MockAuthService{
-		RegisterUserFn: func(user *models.User, reqID string) (*models.User, error) {
+		RegisterUserFn: func(user *models.User) (*models.User, error) {
 			return &models.User{ID: uuid.New(), Email: user.Email}, nil
 		},
 	}
@@ -96,7 +96,7 @@ func TestLogin_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := &MockAuthService{
-		LoginUserFn: func(email, password, reqID string) (*constant.LoginResponse, error) {
+		LoginUserFn: func(email, password string) (*constant.LoginResponse, error) {
 			return &constant.LoginResponse{
 				ID:           uuid.New(),
 				Email:        email,
@@ -126,7 +126,7 @@ func TestSendOTP_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := &MockAuthService{
-		SendOTPFn: func(mobile, reqID string) (string, error) {
+		SendOTPFn: func(mobile string) (string, error) {
 			return "123456", nil
 		},
 	}
@@ -151,7 +151,7 @@ func TestForgotPassword_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := &MockAuthService{
-		ForgotPasswordFn: func(mobile, reqID string) (string, error) {
+		ForgotPasswordFn: func(mobile string) (string, error) {
 			return "reset-otp", nil
 		},
 	}
@@ -176,7 +176,7 @@ func TestRefreshToken_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := &MockAuthService{
-		RefreshAccessTokenFn: func(refreshToken, reqID string) (*constant.LoginResponse, error) {
+		RefreshAccessTokenFn: func(refreshToken string) (*constant.LoginResponse, error) {
 			return &constant.LoginResponse{
 				ID:           uuid.New(),
 				Email:        "user@example.com",
@@ -205,7 +205,7 @@ func TestOAuthLogin_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := &MockAuthService{
-		OAuthLoginFn: func(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error) {
+		OAuthLoginFn: func(ctx context.Context, provider, code string) (*constant.LoginResponse, error) {
 			return &constant.LoginResponse{
 				ID:           uuid.New(),
 				Email:        "test@example.com",

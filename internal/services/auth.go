@@ -8,14 +8,14 @@ import (
 )
 
 type AuthService interface {
-	RegisterUser(user *models.User, reqID string) (*models.User, error)
-	LoginUser(email, password, reqID string) (*constant.LoginResponse, error)
-	SendOTP(mobile string, reqID string) (string, error)
-	ForgotPassword(mobile, reqID string) (string, error)
-	VerifyResetPassword(mobile, otp, reqID string) error
-	ResetPassword(mobile, newPassword, reqID string) error
-	RefreshAccessToken(refreshToken, reqID string) (*constant.LoginResponse, error)
-	GenerateAndSaveOTP(key string, length int, ttl time.Duration, reqID string) (string, error)
+	RegisterUser(user *models.User) (*models.User, error)
+	LoginUser(email, password string) (*constant.LoginResponse, error)
+	SendOTP(mobile string) (string, error)
+	ForgotPassword(mobile string) (string, error)
+	VerifyResetPassword(mobile, otp string) error
+	ResetPassword(mobile, newPassword string) error
+	RefreshAccessToken(refreshToken string) (*constant.LoginResponse, error)
+	GenerateAndSaveOTP(key string, length int, ttl time.Duration) (string, error)
 
-	OAuthLogin(ctx context.Context, provider, code, reqID string) (*constant.LoginResponse, error)
+	OAuthLogin(ctx context.Context, provider, code string) (*constant.LoginResponse, error)
 }

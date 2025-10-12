@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"auth-service/internal/handlers/http"
-	"auth-service/internal/repositories/postgres"
 	"auth-service/internal/repositories/redis"
 	"auth-service/internal/services"
 	"github.com/arezooq/open-utils/logger"
@@ -22,23 +21,16 @@ func main() {
 	// redis
 	redisRepo, err := redis.InitRedis(ctx)
 	if err != nil {
-		logger.Fatal("-", "failed to init redis: "+err.Error())
-	}
-
-	// Postgres
-	pgDB, err := postgres.InitPostgres()
-	if err != nil {
-		logger.Fatal("-", "failed to init postgres: "+err.Error())
+		logger.Fatal("Failed to init redis: "+err.Error())
 	}
 
 	otpRepo := redis.NewOTPRepository(redisRepo, ctx)
-	userRepo := postgres.NewUserRepository(pgDB, logger)
 
-	authService := services.NewAuthService(otpRepo, userRepo, logger)
+	authService := services.NewAuthService(otpRepo, logger)
 	authHandler := http.InitAuthHandler(authService)
 
 	r := gin.Default()
 	authHandler.RegisterRoutes(r)
-	logger.Info("-", "Server started on port "+port)
+	logger.Info("Server started on port "+port)
 	r.Run(":" + port)
 }

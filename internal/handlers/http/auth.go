@@ -18,9 +18,7 @@ func (h *handler) Login(c *gin.Context) {
 		return
 	}
 
-	reqID := c.GetString("reqID")
-
-	resp, err := h.authService.LoginUser(req.Email, req.Password, reqID)
+	resp, err := h.authService.LoginUser(req.Email, req.Password)
 	if err != nil {
 		switch err {
 		case errors.ErrNotFound:
@@ -43,8 +41,7 @@ func (h *handler) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
-	reqID := c.GetString("reqID")
-	user, err := h.authService.RegisterUser(&req, reqID)
+	user, err := h.authService.RegisterUser(&req)
 	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
@@ -61,8 +58,7 @@ func (h *handler) Refresh(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
-	reqID := c.GetString("reqID")
-	resp, err := h.authService.RefreshAccessToken(req.RefreshToken, reqID)
+	resp, err := h.authService.RefreshAccessToken(req.RefreshToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -79,8 +75,7 @@ func (h *handler) ForgotPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
-	reqID := c.GetString("reqID")
-	code, err := h.authService.ForgotPassword(req.Mobile, reqID)
+	code, err := h.authService.ForgotPassword(req.Mobile)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -98,8 +93,7 @@ func (h *handler) VerifyResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
-	reqID := c.GetString("reqID")
-	err := h.authService.VerifyResetPassword(req.Mobile, req.OTP, reqID)
+	err := h.authService.VerifyResetPassword(req.Mobile, req.OTP)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -117,8 +111,7 @@ func (h *handler) ResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
-	reqID := c.GetString("reqID")
-	err := h.authService.ResetPassword(req.Mobile, req.Password, reqID)
+	err := h.authService.ResetPassword(req.Mobile, req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -138,7 +131,7 @@ func (h *handler) OAuthLogin(c *gin.Context) {
 		return    
 	}
 
-	resp, err := h.authService.OAuthLogin(c, req.Provider, req.AccessToken, c.GetString("reqID"))
+	resp, err := h.authService.OAuthLogin(c, req.Provider, req.AccessToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

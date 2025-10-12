@@ -23,7 +23,7 @@ func NewOTPRepository(client *redis.Client, ctx context.Context) *OTPRepository 
 func (o *OTPRepository) SaveOTP(key, code string, ttl time.Duration) (string, error) {
 	err := o.BaseRedisRepository.Set(key, code, ttl)
 	if err != nil {
-		return "", errors.ErrRedis
+		return "", errors.ErrRedisOperation
 	}
 	return code, nil
 }
@@ -54,7 +54,7 @@ func (o *OTPRepository) DeleteOTP(key string) error {
 func (o *OTPRepository) SaveRefreshToken(userID, refreshToken string, ttl time.Duration) error {
 	err := o.BaseRedisRepository.Set("refresh:"+userID, refreshToken, ttl)
 	if err != nil {
-		return errors.ErrRedis
+		return errors.ErrRedisOperation
 	}
 	return nil
 }
