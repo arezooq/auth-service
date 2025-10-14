@@ -10,6 +10,7 @@ import (
 
 	"auth-service/internal/api/user"
 	"auth-service/internal/repositories/redis"
+
 	"github.com/arezooq/open-utils/errors"
 	"github.com/arezooq/open-utils/jwt"
 	"github.com/arezooq/open-utils/logger"

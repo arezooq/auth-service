@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/arezooq/open-utils/uuid"
 	"auth-service/internal/constant"
 	"auth-service/internal/models"
 )
@@ -72,7 +72,7 @@ func TestRegister_Success(t *testing.T) {
 
 	mockSvc := &MockAuthService{
 		RegisterUserFn: func(user *models.User) (*models.User, error) {
-			return &models.User{ID: uuid.New(), Email: user.Email}, nil
+			return &models.User{ID: uuid.UUIDString(), Email: user.Email}, nil
 		},
 	}
 
@@ -98,7 +98,7 @@ func TestLogin_Success(t *testing.T) {
 	mockSvc := &MockAuthService{
 		LoginUserFn: func(email, password string) (*constant.LoginResponse, error) {
 			return &constant.LoginResponse{
-				ID:           uuid.New(),
+				ID:           uuid.UUIDString(),
 				Email:        email,
 				AccessToken:  "access-token",
 				RefreshToken: "refresh-token",
@@ -178,7 +178,7 @@ func TestRefreshToken_Success(t *testing.T) {
 	mockSvc := &MockAuthService{
 		RefreshAccessTokenFn: func(refreshToken string) (*constant.LoginResponse, error) {
 			return &constant.LoginResponse{
-				ID:           uuid.New(),
+				ID:           uuid.UUIDString(),
 				Email:        "user@example.com",
 				AccessToken:  "new-access",
 				RefreshToken: "new-refresh",
@@ -207,7 +207,7 @@ func TestOAuthLogin_Success(t *testing.T) {
 	mockSvc := &MockAuthService{
 		OAuthLoginFn: func(ctx context.Context, provider, code string) (*constant.LoginResponse, error) {
 			return &constant.LoginResponse{
-				ID:           uuid.New(),
+				ID:           uuid.UUIDString(),
 				Email:        "test@example.com",
 				AccessToken:  "oauth-access",
 				RefreshToken: "oauth-refresh",

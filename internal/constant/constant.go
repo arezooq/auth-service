@@ -2,8 +2,6 @@ package constant
 
 import (
 	"os"
-
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
@@ -15,7 +13,7 @@ type LoginRequest struct {
 
 // LoginResponse
 type LoginResponse struct {
-	ID           uuid.UUID `json:"id"`
+	ID           string `json:"id"`
 	Email        string    `json:"email"`
 	AccessToken  string    `json:"access_token"`
 	RefreshToken string    `json:"refresh_token"`
