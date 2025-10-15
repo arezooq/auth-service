@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type UserClient struct {
@@ -58,7 +56,7 @@ func (c *UserClient) Create(req *models.User) error {
 	return nil
 }
 
-func (uc *UserClient) Update(userID uuid.UUID, updates map[string]any) error {
+func (uc *UserClient) Update(userID string, updates map[string]any) error {
 	url := fmt.Sprintf("%s/users/%s", uc.baseURL, userID)
 	body, _ := json.Marshal(updates)
 

@@ -179,7 +179,7 @@ func (s *authService) RefreshAccessToken(refreshToken string) (*constant.LoginRe
 	userID := claims.UserID
 
 	// 2. Check refresh token in Redis
-	stored, err := s.otpRepo.GetRefreshToken(userID.String())
+	stored, err := s.otpRepo.GetRefreshToken(userID)
 	if err != nil || stored != refreshToken {
 		s.log.Warn("Refresh token not found or mismatch")
 		return nil, errors.ErrUnauthorized
@@ -197,7 +197,7 @@ func (s *authService) RefreshAccessToken(refreshToken string) (*constant.LoginRe
 	}
 
 	// 4. Replace old refresh token in Redis
-	err = s.otpRepo.SaveRefreshToken(userID.String(), newRefreshToken, 7*24*time.Hour)
+	err = s.otpRepo.SaveRefreshToken(userID, newRefreshToken, 7*24*time.Hour)
 	if err != nil {
 		s.log.Error("Failed to save refresh token: "+err.Error())
 		return nil, errors.ErrInternal
