@@ -38,7 +38,7 @@ type VerifyResetPasswordRequest struct {
 	OTP    string `json:"otp" binding:"required"`
 }
 
-type ResetPass struct {
+type ResetPasswordRequest struct {
 	Mobile   string `json:"mobile" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }

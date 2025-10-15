@@ -4,12 +4,12 @@ import (
 	"context"
 	"os"
 
-	"github.com/gin-gonic/gin"
-
+	_ "auth-service/docs"
 	"auth-service/internal/handlers/http"
 	"auth-service/internal/repositories/redis"
 	"auth-service/internal/services"
 	"github.com/arezooq/open-utils/logger"
+	"github.com/gin-gonic/gin"
 )
 
 // @title Auth Service API

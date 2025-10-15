@@ -12,7 +12,7 @@ type AuthService interface {
 	SendOTP(req *api.Request, mobile string) (string, error)
 	ForgotPassword(req *api.Request, mobile string) (string, error)
 	VerifyResetPassword(req *api.Request, reqVerify *models.VerifyResetPasswordRequest) error
-	ResetPassword(req *api.Request, resetPass *models.ResetPass) error
+	ResetPassword(req *api.Request, resetPass *models.ResetPasswordRequest) error
 	RefreshAccessToken(req *api.Request, refreshToken string) (*models.LoginResponse, error)
 	GenerateAndSaveOTP(key string, length int, ttl time.Duration) (string, error)
 

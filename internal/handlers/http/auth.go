@@ -77,7 +77,7 @@ func (h *handler) Register(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param refresh body models.RefreshRequest true "Refresh token payload"
-// @Success 200 {object} models.TokenResponse
+// @Success 200 {object} models.LoginResponse
 // @Router /auth/refresh [post]
 func (h *handler) Refresh(c *gin.Context) {
 	req := api.New(c, "auth-service", "v1")
@@ -168,12 +168,11 @@ func (h *handler) VerifyResetPassword(c *gin.Context) {
 // @Produce json
 // @Produce json
 // @Param request body models.ResetPasswordRequest true "Reset Password Request"
-// @Success 200 {object} api.Response{data=map[string]string}
-// @Router /auth/reset-password [post
+// @Router /auth/reset-password [post]
 func (h *handler) ResetPassword(c *gin.Context) {
 	req := api.New(c, "auth-service", "v1")
 
-	resetPass := &models.ResetPass{}
+	resetPass := &models.ResetPasswordRequest{}
 	if err := req.BindJSON(resetPass); err != nil {
 		api.FromAppError(c, errors.ErrInvalidateInput, map[string]string{
 			"detail": err.Error(),
@@ -200,11 +199,8 @@ func (h *handler) ResetPassword(c *gin.Context) {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param data body OAuthLoginRequest true "OAuth Login Request"
-// @Success 200 {object} api.Response{data=OAuthLoginResponse}
-// @Failure 400 {object} api.ErrorResponse
-// @Failure 401 {object} api.ErrorResponse
-// @Failure 500 {object} api.ErrorResponse
+// @Param data body models.OAuthLoginRequest true "OAuth Login Request"
+// @Success 200 {object} models.OAuthLoginResponse
 // @Router /auth/oauth/login [post]
 func (h *handler) OAuthLogin(c *gin.Context) {
 	req := api.New(c, "auth-service", "v1")

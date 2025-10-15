@@ -142,7 +142,7 @@ func (s *authService) VerifyResetPassword(req *api.Request, reqVerify *models.Ve
 	return nil
 }
 
-func (s *authService) ResetPassword(req *api.Request, resetPass *models.ResetPass) error {
+func (s *authService) ResetPassword(req *api.Request, resetPass *models.ResetPasswordRequest) error {
 	user, errUser := s.user.GetUserByEmail(resetPass.Mobile)
 	if errUser != nil || user == nil {
 		return errors.ErrNotFound

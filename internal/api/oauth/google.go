@@ -1,14 +1,14 @@
 package oauth
 
 import (
-	"auth-service/internal/constant"
+	"auth-service/internal/models"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-func getGoogleUserInfo(ctx context.Context, accessToken string) (*constant.OAuthResponse, error) {
+func getGoogleUserInfo(ctx context.Context, accessToken string) (*models.OAuthResponse, error) {
 	req, _ := http.NewRequestWithContext(ctx, "GET",
 		"https://www.googleapis.com/oauth2/v3/userinfo", nil)
 	req.Header.Set("Authorization", "Bearer "+accessToken)
@@ -32,7 +32,7 @@ func getGoogleUserInfo(ctx context.Context, accessToken string) (*constant.OAuth
 		return nil, err
 	}
 
-	return &constant.OAuthResponse{
+	return &models.OAuthResponse{
 		ID:    data.Sub,
 		Email: data.Email,
 		Name:  data.Name,

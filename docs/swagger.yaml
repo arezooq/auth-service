@@ -1,0 +1,273 @@
+basePath: /api/auth
+definitions:
+  models.ForgotPasswordRequest:
+    properties:
+      mobile:
+        type: string
+    required:
+    - mobile
+    type: object
+  models.ForgotPasswordResponse:
+    properties:
+      code:
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  models.OAuthLoginRequest:
+    description: Request body for OAuth login
+    properties:
+      provider:
+        example: google
+        type: string
+      token:
+        example: ya29.a0AfH6SM...
+        type: string
+    required:
+    - provider
+    - token
+    type: object
+  models.OAuthLoginResponse:
+    description: Response after successful OAuth login
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      refresh_token:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  models.ResetPasswordRequest:
+    properties:
+      mobile:
+        type: string
+      password:
+        type: string
+    required:
+    - mobile
+    - password
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      email:
+        type: string
+      email_verified_at:
+        type: string
+      fname:
+        type: string
+      id:
+        type: string
+      lname:
+        type: string
+      mobile:
+        type: string
+      mobile_verified_at:
+        type: string
+      password:
+        type: string
+      status:
+        description: -1=deleted, 0=inactive, 1=active
+        type: integer
+      updated_at:
+        type: string
+      updated_by:
+        type: string
+      username:
+        type: string
+    type: object
+  models.VerifyResetPasswordRequest:
+    properties:
+      mobile:
+        type: string
+      otp:
+        type: string
+    required:
+    - mobile
+    - otp
+    type: object
+info:
+  contact: {}
+  description: This is the Auth Service API documentation.
+  title: Auth Service API
+  version: "1.0"
+paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send verification code to user's mobile for password reset
+      parameters:
+      - description: Forgot password request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ForgotPasswordResponse'
+      summary: Send password reset code
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and get access/refresh tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+      summary: User login
+      tags:
+      - Auth
+  /auth/oauth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login or register a user using OAuth (e.g., Google, GitHub, etc.)
+      parameters:
+      - description: OAuth Login Request
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.OAuthLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OAuthLoginResponse'
+      summary: Login with OAuth provider
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh access token using a valid refresh token
+      parameters:
+      - description: Refresh token payload
+        in: body
+        name: refresh
+        required: true
+        schema:
+          $ref: '#/definitions/models.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+      summary: Refresh access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: Register new user
+      tags:
+      - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP and reset the user password
+      parameters:
+      - description: Reset Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordRequest'
+      produces:
+      - application/json
+      - application/json
+      responses: {}
+      summary: Reset user password
+      tags:
+      - Auth
+  /auth/verify-reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP sent for password reset
+      parameters:
+      - description: Verify Reset Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerifyResetPasswordRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Verify reset password OTP
+      tags:
+      - Auth
+swagger: "2.0"
