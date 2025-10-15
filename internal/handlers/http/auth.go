@@ -1,141 +1,228 @@
 package http
 
 import (
+	"github.com/arezooq/open-utils/api"
 	"net/http"
 
-	"auth-service/internal/constant"
 	"auth-service/internal/models"
 	"github.com/arezooq/open-utils/errors"
 	"github.com/gin-gonic/gin"
 )
 
-//	Login
+// Login godoc
+// @Summary User login
+// @Description Authenticate user and get access/refresh tokens
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param login body models.LoginRequest true "Login credentials"
+// @Success 200 {object} models.LoginResponse
+// @Router /auth/login [post]
 func (h *handler) Login(c *gin.Context) {
-	var req constant.LoginRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+	req := api.New(c, "auth-service", "v1")
+
+	loginReq := &models.LoginRequest{}
+
+	if err := req.BindJSON(loginReq); err != nil {
+		api.FromAppError(c, errors.ErrInvalidateInput, map[string]string{
+			"detail": err.Error(),
+		})
+
 		return
 	}
 
-	resp, err := h.authService.LoginUser(req.Email, req.Password)
-	if err != nil {
-		switch err {
-		case errors.ErrNotFound:
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-		case errors.ErrUnauthorized:
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-		}
+	result, appErr := h.authService.LoginUser(req, loginReq)
+	if appErr != nil {
+		api.FromAppError(c, appErr, nil)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	api.Success(c, http.StatusOK, "Login successfully", result)
 }
 
-// Register
+// Register godoc
+// @Summary Register new user
+// @Description Create a new user account
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param user body models.User true "User info"
+// @Success 201 {object} models.User
+// @Router /auth/register [post]
 func (h *handler) Register(c *gin.Context) {
-	var req models.User
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+	req := api.New(c, "auth-service", "v1")
+
+	user := &models.User{}
+	if err := req.BindJSON(user); err != nil {
+		api.FromAppError(c, errors.ErrInvalidateInput, map[string]string{
+			"detail": err.Error(),
+		})
+
 		return
 	}
-	user, err := h.authService.RegisterUser(&req)
-	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+
+	result, appErr := h.authService.RegisterUser(req, user)
+	if appErr != nil {
+		api.FromAppError(c, appErr, nil)
 		return
 	}
-	c.JSON(http.StatusCreated, user)
+	api.Success(c, http.StatusCreated, "User created successfully", result)
 }
 
-// Refresh
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Refresh access token using a valid refresh token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param refresh body models.RefreshRequest true "Refresh token payload"
+// @Success 200 {object} models.TokenResponse
+// @Router /auth/refresh [post]
 func (h *handler) Refresh(c *gin.Context) {
-	var req struct {
-		RefreshToken string `json:"refresh_token" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+	req := api.New(c, "auth-service", "v1")
+
+	var body models.RefreshRequest
+	if err := req.BindJSON(&body); err != nil {
+		api.FromAppError(c, errors.ErrInvalidateInput, map[string]string{
+			"detail": err.Error(),
+		})
 		return
 	}
-	resp, err := h.authService.RefreshAccessToken(req.RefreshToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+
+	resp, appErr := h.authService.RefreshAccessToken(req, body.RefreshToken)
+	if appErr != nil {
+		api.FromAppError(c, appErr, nil)
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+
+	api.Success(c, http.StatusOK, "Access token refreshed successfully", resp)
 }
 
-// ForgotPassword
+// ForgotPassword godoc
+// @Summary Send password reset code
+// @Description Send verification code to user's mobile for password reset
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body models.ForgotPasswordRequest true "Forgot password request"
+// @Success 200 {object} models.ForgotPasswordResponse
+// @Router /auth/forgot-password [post]
 func (h *handler) ForgotPassword(c *gin.Context) {
-	var req struct {
-		Mobile string `json:"mobile" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+	req := api.New(c, "auth-service", "v1")
+
+	body := &models.ForgotPasswordRequest{}
+	if err := req.BindJSON(body); err != nil {
+		api.FromAppError(c, errors.ErrInvalidateInput, map[string]string{
+			"detail": err.Error(),
+		})
 		return
 	}
-	code, err := h.authService.ForgotPassword(req.Mobile)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+
+	code, appErr := h.authService.ForgotPassword(req, body.Mobile)
+	if appErr != nil {
+		api.FromAppError(c, appErr, nil)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"code": code})
+
+	api.Success(c, http.StatusOK, "Verification code sent successfully", models.ForgotPasswordResponse{
+		Code: code,
+	})
 }
 
-// VerifyResetPassword
+// VerifyResetPassword godoc
+// @Summary Verify reset password OTP
+// @Description Verify OTP sent for password reset
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body models.VerifyResetPasswordRequest true "Verify Reset Password Request"
+// @Router /auth/verify-reset-password [post]
 func (h *handler) VerifyResetPassword(c *gin.Context) {
-	var req struct {
-		Mobile string `json:"mobile" binding:"required"`
-		OTP    string `json:"otp" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+	req := api.New(c, "auth-service", "v1")
+
+	reqVerify := &models.VerifyResetPasswordRequest{}
+
+	if err := c.ShouldBindJSON(reqVerify); err != nil {
+		api.FromAppError(c, errors.ErrBadRequest, map[string]string{
+			"detail": err.Error(),
+		})
 		return
 	}
-	err := h.authService.VerifyResetPassword(req.Mobile, req.OTP)
+
+	err := h.authService.VerifyResetPassword(req, reqVerify)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
+		api.FromAppError(c, errors.ErrUnauthorized, map[string]string{
+			"detail": err.Error(),
+		})
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "OTP verified"})
+
+	api.Success(c, http.StatusOK, "OTP verified", nil)
 }
 
-// ResetPassword
+// ResetPassword godoc
+// @Summary Reset user password
+// @Description Verify OTP and reset the user password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Produce json
+// @Param request body models.ResetPasswordRequest true "Reset Password Request"
+// @Success 200 {object} api.Response{data=map[string]string}
+// @Router /auth/reset-password [post
 func (h *handler) ResetPassword(c *gin.Context) {
-	var req struct {
-		Mobile   string `json:"mobile" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+	req := api.New(c, "auth-service", "v1")
+
+	resetPass := &models.ResetPass{}
+	if err := req.BindJSON(resetPass); err != nil {
+		api.FromAppError(c, errors.ErrInvalidateInput, map[string]string{
+			"detail": err.Error(),
+		})
+
 		return
 	}
-	err := h.authService.ResetPassword(req.Mobile, req.Password)
+	err := h.authService.ResetPassword(req, resetPass)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		api.FromAppError(c, err, nil)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successful"})
+	if err != nil {
+		api.FromAppError(c, errors.ErrInternal, map[string]string{
+			"detail": err.Error(),
+		})
+	}
+	api.Success(c, http.StatusOK, "Password reset successful", nil)
 }
 
-// OAuthLogin
+// OAuthLogin godoc
+// @Summary Login with OAuth provider
+// @Description Login or register a user using OAuth (e.g., Google, GitHub, etc.)
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param data body OAuthLoginRequest true "OAuth Login Request"
+// @Success 200 {object} api.Response{data=OAuthLoginResponse}
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 401 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
+// @Router /auth/oauth/login [post]
 func (h *handler) OAuthLogin(c *gin.Context) {
-	var req struct {
-		Provider    string `json:"provider" binding:"required"`
-		AccessToken string `json:"access_token" binding:"required"`
-	}
+	req := api.New(c, "auth-service", "v1")
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return    
-	}
+	oAuthLogin := &models.OAuthLoginRequest{}
+	if err := req.BindJSON(oAuthLogin); err != nil {
+		api.FromAppError(c, errors.ErrInvalidateInput, map[string]string{
+			"detail": err.Error(),
+		})
 
-	resp, err := h.authService.OAuthLogin(c, req.Provider, req.AccessToken)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	result, appErr := h.authService.OAuthLogin(req, oAuthLogin)
+	if appErr != nil {
+		api.FromAppError(c, appErr, nil)
+		return
+	}
+
+	api.Success(c, http.StatusOK, "Login successfully", result)
 }

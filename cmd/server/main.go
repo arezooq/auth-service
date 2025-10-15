@@ -12,6 +12,10 @@ import (
 	"github.com/arezooq/open-utils/logger"
 )
 
+// @title Auth Service API
+// @version 1.0
+// @description This is the Auth Service API documentation.
+// @BasePath /api/auth
 func main() {
 	port := os.Getenv("PORT")
 	var ctx context.Context
@@ -21,7 +25,7 @@ func main() {
 	// redis
 	redisRepo, err := redis.InitRedis(ctx)
 	if err != nil {
-		logger.Fatal("Failed to init redis: "+err.Error())
+		logger.Fatal("Failed to init redis: " + err.Error())
 	}
 
 	otpRepo := redis.NewOTPRepository(redisRepo, ctx)
@@ -31,6 +35,6 @@ func main() {
 
 	r := gin.Default()
 	authHandler.RegisterRoutes(r)
-	logger.Info("Server started on port "+port)
+	logger.Info("Server started on port " + port)
 	r.Run(":" + port)
 }

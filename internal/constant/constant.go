@@ -1,29 +1,9 @@
 package constant
 
 import (
-	"os"
 	"github.com/joho/godotenv"
+	"os"
 )
-
-// LoginRequest
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
-}
-
-// LoginResponse
-type LoginResponse struct {
-	ID           string `json:"id"`
-	Email        string    `json:"email"`
-	AccessToken  string    `json:"access_token"`
-	RefreshToken string    `json:"refresh_token"`
-}
-
-type OAuthResponse struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
-	Name  string `json:"name"`
-}
 
 // service info
 const (

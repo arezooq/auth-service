@@ -1,19 +1,19 @@
 package oauth
 
 import (
-	"auth-service/internal/constant"
+	"auth-service/internal/models"
 	"context"
 
 	"github.com/arezooq/open-utils/errors"
 )
 
 type OAuthClient interface {
-	GetUserInfo(ctx context.Context, provider, accessToken string) (*constant.OAuthResponse, error)
+	GetUserInfo(ctx context.Context, provider, accessToken string) (*models.OAuthResponse, error)
 }
 
 type oauthClient struct{}
 
-func (c *oauthClient) GetUserInfo(ctx context.Context, provider, accessToken string) (*constant.OAuthResponse, error) {
+func (c *oauthClient) GetUserInfo(ctx context.Context, provider, accessToken string) (*models.OAuthResponse, error) {
 	switch provider {
 	case "google":
 		return getGoogleUserInfo(ctx, accessToken)
@@ -23,4 +23,3 @@ func (c *oauthClient) GetUserInfo(ctx context.Context, provider, accessToken str
 		return nil, errors.ErrInternal
 	}
 }
-

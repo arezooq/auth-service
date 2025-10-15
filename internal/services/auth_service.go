@@ -1,11 +1,10 @@
 package services
 
 import (
-	"context"
+	"github.com/arezooq/open-utils/api"
 	"time"
 
 	"auth-service/internal/api/oauth"
-	"auth-service/internal/constant"
 	"auth-service/internal/models"
 
 	"auth-service/internal/api/user"
@@ -38,17 +37,17 @@ func NewAuthService(
 	return &authService{otpRepo: otpRepo, log: log}
 }
 
-func (s *authService) RegisterUser(user *models.User) (*models.User, error) {
+func (s *authService) RegisterUser(req *api.Request, user *models.User) (*models.User, error) {
 
 	existing, _ := s.user.GetUserByEmail(user.Email)
 	if existing != nil {
-		s.log.Warn("User already exist: "+user.Email)
+		s.log.Warn("User already exist: " + user.Email)
 		return nil, errors.ErrDuplicate
 	}
 
 	hashedPassword, errPass := security.HashPassword(user.Password)
 	if errPass != nil {
-		s.log.Error("Failed to hash password for: "+errPass.Error())
+		s.log.Error("Failed to hash password for: " + errPass.Error())
 		return nil, errors.ErrInternal
 	}
 
@@ -57,36 +56,36 @@ func (s *authService) RegisterUser(user *models.User) (*models.User, error) {
 	err := s.user.Create(user)
 
 	if err != nil {
-		s.log.Error("Failed to save user: "+err.Error())
+		s.log.Error("Failed to save user: " + err.Error())
 		return nil, errors.ErrInternal
 	}
-	s.log.Info("Register new user successfully: "+user.Email)
+	s.log.Info("Register new user successfully: " + user.Email)
 	return user, nil
 }
 
-func (s *authService) LoginUser(email, password string) (*constant.LoginResponse, error) {
-	user, errUserExist := s.user.GetUserByEmail(email)
+func (s *authService) LoginUser(req *api.Request, loginReq *models.LoginRequest) (*models.LoginResponse, error) {
+	user, errUserExist := s.user.GetUserByEmail(loginReq.Email)
 	if errUserExist != nil {
 		return nil, errors.ErrNotFound
 	}
 
-	if !security.CheckPasswordHash(user.Password, password) {
+	if !security.CheckPasswordHash(user.Password, loginReq.Password) {
 		return nil, errors.ErrUnauthorized
 	}
 
 	accessToken, errTok := jwt.GenerateAccessToken(user.ID)
 	if errTok != nil {
-		s.log.Error("Failed to generate access token: "+errTok.Error())
+		s.log.Error("Failed to generate access token: " + errTok.Error())
 		return nil, errors.ErrInternal
 	}
 
 	refreshToken, errRefTok := jwt.GenerateRefreshToken(user.ID)
 	if errRefTok != nil {
-		s.log.Error("Failed to generate refresh token: "+errRefTok.Error())
+		s.log.Error("Failed to generate refresh token: " + errRefTok.Error())
 		return nil, errors.ErrInternal
 	}
 
-	return &constant.LoginResponse{
+	return &models.LoginResponse{
 		ID:           user.ID,
 		Email:        user.Email,
 		AccessToken:  accessToken,
@@ -94,64 +93,64 @@ func (s *authService) LoginUser(email, password string) (*constant.LoginResponse
 	}, nil
 }
 
-func (s *authService) SendOTP(mobile string) (string, error) {
+func (s *authService) SendOTP(req *api.Request, mobile string) (string, error) {
 	_, err := s.user.GetUserByEmail(mobile)
 	if err != nil {
-		s.log.Warn("User not found for mobile: "+mobile)
+		s.log.Warn("User not found for mobile: " + mobile)
 		return "", errors.ErrNotFound
 	}
 
 	code, errRedis := s.GenerateAndSaveOTP(mobile, 6, 2*time.Minute)
 	if errRedis != nil {
-		s.log.Error("Failed to save OTP in Redis: "+errRedis.Error())
+		s.log.Error("Failed to save OTP in Redis: " + errRedis.Error())
 		return "", errRedis
 	}
 
-	s.log.Info("OTP sent successfully to: "+mobile)
+	s.log.Info("OTP sent successfully to: " + mobile)
 	return code, nil
 }
 
-func (s *authService) ForgotPassword(mobile string) (string, error) {
+func (s *authService) ForgotPassword(req *api.Request, mobile string) (string, error) {
 	user, errUser := s.user.GetUserByEmail(mobile)
 	if errUser != nil || user == nil {
-		s.log.Warn("User not found for password reset: "+mobile)
+		s.log.Warn("User not found for password reset: " + mobile)
 		return "", errors.ErrNotFound
 	}
 
 	code, errRedis := s.GenerateAndSaveOTP("reset:"+mobile, 6, 10*time.Minute)
 	if errRedis != nil {
-		s.log.Error("Failed to save OTP in Redis: "+errRedis.Error())
+		s.log.Error("Failed to save OTP in Redis: " + errRedis.Error())
 		return "", errRedis
 	}
 
-	s.log.Info("Password reset OTP sent successfully to: "+mobile)
+	s.log.Info("Password reset OTP sent successfully to: " + mobile)
 	return code, nil
 }
 
-func (s *authService) VerifyResetPassword(mobile, otp string) error {
-	storedOTP, err := s.otpRepo.VerifyOTP("reset:"+mobile, otp)
+func (s *authService) VerifyResetPassword(req *api.Request, reqVerify *models.VerifyResetPasswordRequest) error {
+	storedOTP, err := s.otpRepo.VerifyOTP("reset:"+reqVerify.Mobile, reqVerify.OTP)
 	if err != nil || !storedOTP {
-		s.log.Warn("Invalid or expired reset OTP for: "+mobile)
+		s.log.Warn("Invalid or expired reset OTP for: " + reqVerify.Mobile)
 		return errors.ErrUnauthorized
 	}
 
-	if errDel := s.otpRepo.DeleteOTP("reset:" + mobile); errDel != nil {
-		s.log.Error("Failed to delete reset OTP: "+errDel.Error())
+	if errDel := s.otpRepo.DeleteOTP("reset:" + reqVerify.Mobile); errDel != nil {
+		s.log.Error("Failed to delete reset OTP: " + errDel.Error())
 	}
 
-	s.log.Info("Password reset OTP verified successfully for: "+mobile)
+	s.log.Info("Password reset OTP verified successfully for: " + reqVerify.Mobile)
 	return nil
 }
 
-func (s *authService) ResetPassword(mobile, newPassword string) error {
-	user, errUser := s.user.GetUserByEmail(mobile)
+func (s *authService) ResetPassword(req *api.Request, resetPass *models.ResetPass) error {
+	user, errUser := s.user.GetUserByEmail(resetPass.Mobile)
 	if errUser != nil || user == nil {
 		return errors.ErrNotFound
 	}
 
-	hashedPassword, errPass := security.HashPassword(newPassword)
+	hashedPassword, errPass := security.HashPassword(resetPass.Password)
 	if errPass != nil {
-		s.log.Error("Failed to hash new password: "+errPass.Error())
+		s.log.Error("Failed to hash new password: " + errPass.Error())
 		return errors.ErrInternal
 	}
 
@@ -160,19 +159,19 @@ func (s *authService) ResetPassword(mobile, newPassword string) error {
 	}
 	errUpdate := s.user.Update(user.ID, updates)
 	if errUpdate != nil {
-		s.log.Error("Failed to update password: "+errUpdate.Error())
+		s.log.Error("Failed to update password: " + errUpdate.Error())
 		return errors.ErrInternal
 	}
 
-	s.log.Info("Password reset successfully for user: "+mobile)
+	s.log.Info("Password reset successfully for user: " + resetPass.Mobile)
 	return nil
 }
 
-func (s *authService) RefreshAccessToken(refreshToken string) (*constant.LoginResponse, error) {
+func (s *authService) RefreshAccessToken(req *api.Request, refreshToken string) (*models.LoginResponse, error) {
 	// 1. Validate refresh token
 	claims, err := jwt.ValidateRefreshToken(refreshToken)
 	if err != nil {
-		s.log.Warn("Invalid refresh token: "+err.Error())
+		s.log.Warn("Invalid refresh token: " + err.Error())
 		return nil, errors.ErrUnauthorized
 	}
 
@@ -199,12 +198,12 @@ func (s *authService) RefreshAccessToken(refreshToken string) (*constant.LoginRe
 	// 4. Replace old refresh token in Redis
 	err = s.otpRepo.SaveRefreshToken(userID, newRefreshToken, 7*24*time.Hour)
 	if err != nil {
-		s.log.Error("Failed to save refresh token: "+err.Error())
+		s.log.Error("Failed to save refresh token: " + err.Error())
 		return nil, errors.ErrInternal
 	}
 
 	// 5. Return response
-	return &constant.LoginResponse{
+	return &models.LoginResponse{
 		ID:           userID,
 		AccessToken:  accessToken,
 		RefreshToken: newRefreshToken,
@@ -216,15 +215,15 @@ func (s *authService) GenerateAndSaveOTP(key string, length int, ttl time.Durati
 
 	code, errRedis := s.otpRepo.SaveOTP(key, otp, ttl)
 	if errRedis != nil {
-		s.log.Error("Failed to save OTP in Redis: "+errRedis.Error())
+		s.log.Error("Failed to save OTP in Redis: " + errRedis.Error())
 		return "", errors.ErrInternal
 	}
 
 	return code, nil
 }
 
-func (s *authService) OAuthLogin(ctx context.Context, provider, code string) (*constant.LoginResponse, error) {
-	userInfo, err := s.oauthClient.GetUserInfo(ctx, provider, code)
+func (s *authService) OAuthLogin(req *api.Request, oAuthLogin *models.OAuthLoginRequest) (*models.OAuthLoginResponse, error) {
+	userInfo, err := s.oauthClient.GetUserInfo(req.Ctx, oAuthLogin.Provider, oAuthLogin.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -242,18 +241,18 @@ func (s *authService) OAuthLogin(ctx context.Context, provider, code string) (*c
 	// Generate accessToken
 	accessToken, errTok := jwt.GenerateAccessToken(user.ID)
 	if errTok != nil {
-		s.log.Error("Failed to generate access token: "+errTok.Error())
+		s.log.Error("Failed to generate access token: " + errTok.Error())
 		return nil, errors.ErrInternal
 	}
 
 	// Generate refreshToken
 	refreshToken, errRefTok := jwt.GenerateRefreshToken(user.ID)
 	if errRefTok != nil {
-		s.log.Error("Failed to generate refresh token: "+errRefTok.Error())
+		s.log.Error("Failed to generate refresh token: " + errRefTok.Error())
 		return nil, errors.ErrInternal
 	}
 
-	return &constant.LoginResponse{
+	return &models.OAuthLoginResponse{
 		ID:           user.ID,
 		Email:        user.Email,
 		AccessToken:  accessToken,
