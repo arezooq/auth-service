@@ -18,7 +18,7 @@ import (
 // @BasePath /api/auth
 func main() {
 	port := os.Getenv("PORT")
-	var ctx context.Context
+	ctx := context.Background()
 
 	logger := logger.New("auth-service")
 

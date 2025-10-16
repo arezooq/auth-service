@@ -144,7 +144,7 @@ paths:
             $ref: '#/definitions/models.ForgotPasswordResponse'
       summary: Send password reset code
       tags:
-      - auth
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -210,7 +210,7 @@ paths:
             $ref: '#/definitions/models.LoginResponse'
       summary: Refresh access token
       tags:
-      - auth
+      - Auth
   /auth/register:
     post:
       consumes:

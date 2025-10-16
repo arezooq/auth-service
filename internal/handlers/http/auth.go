@@ -73,7 +73,7 @@ func (h *handler) Register(c *gin.Context) {
 // Refresh godoc
 // @Summary Refresh access token
 // @Description Refresh access token using a valid refresh token
-// @Tags auth
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param refresh body models.RefreshRequest true "Refresh token payload"
@@ -102,7 +102,7 @@ func (h *handler) Refresh(c *gin.Context) {
 // ForgotPassword godoc
 // @Summary Send password reset code
 // @Description Send verification code to user's mobile for password reset
-// @Tags auth
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param request body models.ForgotPasswordRequest true "Forgot password request"
